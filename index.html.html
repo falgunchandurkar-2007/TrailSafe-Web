@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrailSafe | Autonomous Offline Mesh Telemetry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #040806;
+      --card-bg: rgba(11, 22, 16, 0.75);
+      --card-border: #1a3c28;
+      --primary: #00e676;
+      --primary-glow: rgba(0, 230, 118, 0.35);
+      --accent-cyan: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-image: 
+        radial-gradient(circle at 50% 15%, rgba(0, 230, 118, 0.08) 0%, transparent 60%),
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 60px 60px, 60px 60px;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    nav {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(14px);
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 900;
+      box-shadow: 0 0 20px var(--primary-glow);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--primary); }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, #00b0ff 100%);
+      color: #020704;
+      box-shadow: 0 4px 20px var(--primary-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 230, 118, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--card-border);
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+    }
+
+    .hero {
+      max-width: 1100px;
+      margin: 40px auto 60px;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .creator-box {
+      margin-bottom: 24px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-frame {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 3px solid var(--primary);
+      box-shadow: 0 0 35px var(--primary-glow);
+      overflow: hidden;
+      background: #0d1f14;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .creator-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .author-name {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 5.5vw, 62px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .author-statement {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin-bottom: 32px;
+    }
+
+    .author-statement strong {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .mockup-wrap {
+      max-width: 900px;
+      width: 100%;
+      margin-top: 20px;
+      padding: 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 230, 118, 0.05);
+      backdrop-filter: blur(16px);
+      text-align: left;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--primary);
+    }
+
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #eab308; }
+    .dot-green { background: #22c55e; }
+
+    .terminal-content {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .terminal-content .green { color: var(--primary); font-weight: 600; }
+    .terminal-content .cyan { color: var(--accent-cyan); }
+    .terminal-content .white { color: #fff; }
+
+    .features {
+      max-width: 1100px;
+      margin: 80px auto;
+      padding: 0 20px;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-title h2 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--primary);
+    }
+
+    .feature-card h3 {
+      font-size: 19px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .certificate-card {
+      max-width: 900px;
+      margin: 80px auto 40px;
+      padding: 36px;
+      background: #030805;
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      box-shadow: 0 0 50px rgba(0, 230, 118, 0.12);
+      position: relative;
+    }
+
+    .cert-stamp {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      width: 76px;
+      height: 76px;
+      border: 2px dashed var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      color: var(--primary);
+      transform: rotate(-10deg);
+      font-weight: 700;
+    }
+
+    .certificate-card h3 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .cert-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      letter-spacing: 1px;
+    }
+
+    .cert-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .cert-table td {
+      padding: 10px 0;
+      border-bottom: 1px solid #163622;
+    }
+
+    .cert-table td.label {
+      color: var(--text-muted);
+      width: 32%;
+    }
+
+    .cert-table td.val {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    footer {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 24px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .cert-stamp { display: none; }
+      .cert-table td.label { width: 45%; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+
+  <nav>
+    <div class="brand">
+      <div class="brand-icon">T</div>
+      <span>TrailSafe</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#features">Architecture</a></li>
+      <li><a href="#telemetry">Protocol Port 8901</a></li>
+      <li><a href="#certificate">Copyright Certificate</a></li>
+    </ul>
+    <a href="https://github.com/falgunchandurkar-2007/TrailSafe/releases/download/v1.0.0/app-release.apk" class="btn btn-primary">
+      Get App (.APK)
+    </a>
+  </nav>
+
+  <header class="hero">
+    <div class="creator-box">
+      <div class="photo-frame">
+        <img 
+          id="author-img"
+          src="falgun.jpg" 
+          alt="" 
+          class="creator-photo"
+        />
+      </div>
+      <div class="author-name">Falgun Subhash Chandurkar • Sole Architect</div>
+    </div>
+    
+    <h1>Autonomous Offline <span>Expedition Mesh</span></h1>
+    
+    <p class="author-statement">
+      Engineered and solely developed by <strong>Falgun Subhash Chandurkar</strong>. 
+      TrailSafe transforms consumer smartphones into zero-infrastructure emergency beacons using 
+      direct P2P Wi-Fi Direct, BLE Mesh broadcasting, and serialized binary telemetry.
+    </p>
+
+    <div class="cta-group">
+      <a href="https://github.com/falgunchandurkar-2007/TrailSafe/releases/download/v1.0.0/app-release.apk" class="btn btn-primary">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        <span>Download TrailSafe APK (v1.0.0)</span>
+      </a>
+      <a href="#certificate" class="btn btn-secondary">
+        <span>View Copyright Certificate</span>
+      </a>
+    </div>
+
+    <div class="mockup-wrap" id="telemetry">
+      <div class="terminal-header">
+        <div class="dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <span>PORT_8901 // TRAILSAFE_MESH_DAEMON</span>
+        <span class="green">● AD-HOC ACTIVE</span>
+      </div>
+      <div class="terminal-content">
+        <div>[SOCKET] <span class="white">BIND:</span> Port 8901 listening on Wi-Fi Direct interface (192.168.49.1)</div>
+        <div>[PEER] <span class="cyan">ECDH_HANDSHAKE:</span> Cryptographic zero-internet token verified with team node.</div>
+        <div>[BEACON] <span class="green">CHANNELS_37_38_39:</span> 24-byte serialized binary SOS beacon active.</div>
+        <div>[VECTOR] <span class="white">TELEMETRY_SYNC:</span> Sub-meter GPS & compass bearing dispatched to swarm.</div>
+      </div>
+    </div>
+  </header>
+
+  <section class="features" id="features">
+    <div class="section-title">
+      <h2>Engineering Highlights</h2>
+      <p style="color: var(--text-muted);">Purpose-built for zero-coverage alpine and disaster scenarios.</p>
+    </div>
+
+    <div class="grid-3">
+      <div class="feature-card">
+        <div style="font-size: 30px; margin-bottom: 12px;">📡</div>
+        <h3>Port 8901 Binary Sockets</h3>
+        <p>Replaces heavy JSON requests with tightly packed 24-byte binary payloads over direct ad-hoc UDP radio channels.</p>
+      </div>
+
+      <div class="feature-card">
+        <div style="font-size: 30px; margin-bottom: 12px;">⚡</div>
+        <h3>1-Tap Swarm SOS Broadcast</h3>
+        <p>Bypasses cell towers completely, broadcasting emergency distress packets to every rescuer in local radio range simultaneously.</p>
+      </div>
+
+      <div class="feature-card">
+        <div style="font-size: 30px; margin-bottom: 12px;">🧭</div>
+        <h3>Offline Vector Radar</h3>
+        <p>Directs search parties to victims using internal hardware compass and IMU dead-reckoning without needing Google Play Services.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="certificate-card" id="certificate">
+    <div class="cert-stamp">VERIFIED<br>ORIGINAL<br>WORK</div>
+    <h3>Certificate of Original Authorship & Copyright</h3>
+    <p class="cert-sub">INTELLECTUAL PROPERTY IDENTIFICATION</p>
+
+    <table class="cert-table">
+      <tr>
+        <td class="label">Project Title:</td>
+        <td class="val">TrailSafe (Autonomous Offline Expedition Mesh)</td>
+      </tr>
+      <tr>
+        <td class="label">Principal Author & Creator:</td>
+        <td class="val" style="color: var(--primary);">Falgun Subhash Chandurkar</td>
+      </tr>
+      <tr>
+        <td class="label">Architecture:</td>
+        <td class="val">Ad-hoc Wi-Fi Direct, BLE Mesh & Binary Port 8901 Protocols</td>
+      </tr>
+      <tr>
+        <td class="label">Copyright Ownership:</td>
+        <td class="val">© 2024–2026 Falgun Subhash Chandurkar. All Rights Reserved.</td>
+      </tr>
+      <tr>
+        <td class="label">Legal Status:</td>
+        <td class="val">Registered Autonomous Open-Radio Telemetry Protocol Framework.</td>
+      </tr>
+    </table>
+
+    <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+      This document certifies that the TrailSafe codebase, system design, and communication logic 
+      were conceived and developed exclusively by <strong>Falgun Subhash Chandurkar</strong>. 
+      Unauthorized commercial distribution or uncredited reverse engineering is strictly prohibited.
+    </p>
+  </section>
+
+  <footer>
+    <p>© 2026 TrailSafe. Solely developed by <strong>Falgun Subhash Chandurkar</strong>.</p>
+  </footer>
+
+  <script>
+    // Automatic fallback pipeline for local image paths
+    const imgElement = document.getElementById('author-img');
+    const candidates = [
+      'falgun.jpg',
+      'falgun.jpeg',
+      'falgun.png',
+      'Falgun.jpg',
+      'Falgun.JPG',
+      'falgun.JPG',
+      'falgun.jpg.jpeg',
+      'falgun.jpg.jpg'
+    ];
+    let candidateIndex = 0;
+
+    imgElement.onerror = function() {
+      candidateIndex++;
+      if (candidateIndex < candidates.length) {
+        this.src = candidates[candidateIndex];
+      } else {
+        this.onerror = null;
+      }
+    };
+  </script>
+</body>
+</html>
